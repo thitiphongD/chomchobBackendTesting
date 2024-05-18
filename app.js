@@ -3,11 +3,12 @@ const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 const port = 3000;
+const mysql = require('mysql2');
+const db = require('./db');
 
 app.get('/', (req, res) => {
   res.send('Hello   World!');
 });
-
 
 app.listen(port, () => {
   console.log(
