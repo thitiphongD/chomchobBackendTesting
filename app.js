@@ -3,12 +3,9 @@ const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 const port = 3000;
-const mysql = require('mysql2');
-const db = require('./sync');
+const mainRoutes = require('./routes/mainRoutes');
 
-app.get('/', (req, res) => {
-  res.send('Hello   World!');
-});
+app.use('/', mainRoutes);
 
 app.listen(port, () => {
   console.log(
