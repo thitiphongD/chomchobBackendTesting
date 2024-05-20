@@ -1,14 +1,15 @@
-const { Sequelize } = require('sequelize');
 const sequelize = require('../config/db');
 const HealthCheck = require('./healthCheckModel');
 const Users = require('./Users');
-
-// Add other models here and set up associations if any
+const Crypto = require('./Crypto');
+const Balance = require('./Balance')
 
 const db = {
     sequelize,
     HealthCheck,
-    Users
+    Users,
+    Crypto,
+    // Balance
     // Add other models here
 };
 
