@@ -12,6 +12,8 @@ router.post('/create', mainController.createHealthCheck)
 // User
 router.get('/users', userController.getAllUsers)
 router.post('/createUser', userController.createUser)
+router.post('/increase', userController.increaseUserBalance)
+router.post('/decrease', userController.decreaseUserBalance)
 
 // Crypto
 router.get('/cryptos', cryptoController.getAllCryptos)
