@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const User = require('../models/Users');
-const Balance = require('../models/Balance');
 const Crypto = require('../models/Crypto');
+const CryptoDetails = require('../models/CryptoDetails');
 
 
 exports.getAllUsers = async (req, res) => {

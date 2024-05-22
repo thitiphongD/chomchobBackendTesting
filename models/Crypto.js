@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
+const Users = require('./Users');
+const CryptoDetails = require('./CryptoDetails');
 
 const Crypto = sequelize.define('Crypto', {
     id: {
@@ -7,17 +9,24 @@ const Crypto = sequelize.define('Crypto', {
         allowNull: false,
         primaryKey: true
     },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    symbol: {
+    userId: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        references: {
+            model: Users,
+            key: 'id'
+        }
     },
-    value: {
-        type: DataTypes.FLOAT,
+    cryptoId: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+            model: CryptoDetails,
+            key: 'id'
+        }
+    },
+    amount: {
+        type: DataTypes.DECIMAL(20, 8),
         allowNull: false
     }
 }, {

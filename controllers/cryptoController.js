@@ -1,10 +1,9 @@
 const { v4: uuidv4 } = require('uuid');
-const Crypto = require('../models/Crypto');
-const axios = require('axios');
+const CryptoDetails = require('../models/CryptoDetails');
 
 exports.getAllCryptos = async (req, res) => {
     try {
-        const cryptos = await Crypto.findAll();
+        const cryptos = await CryptoDetails.findAll();
         res.status(200).json({ data: cryptos });
     } catch (error) {
         console.error('Error get all Crypto', error);
@@ -15,7 +14,6 @@ exports.getAllCryptos = async (req, res) => {
 exports.createCrypto = async (req, res) => {
     try {
         const { name, symbol, value } = req.body;
-
         if (!name || !symbol || value === undefined) {
             return res.status(400).json({ error: 'name, symbol, and value are required' });
         }
@@ -23,13 +21,14 @@ exports.createCrypto = async (req, res) => {
         if (typeof value !== 'number' || value < 0) {
             return res.status(400).json({ error: 'value must be a non-negative number' });
         }
-        const existingCrypto = await Crypto.findOne({ $or: [{ name }, { symbol }] });
-        if (existingCrypto) {
-            return res.status(400).json({ error: 'Crypto same name or symbol' });
+        const existingCrypto = await CryptoDetails.findOne({ $or: [{ name }, { symbol }] });
+        if (existingCrypto.name === name || existingCrypto.symbol === symbol) {
+            return res.status(400).json({ error: 'Cryptowith the same name already exists' });
         }
+
         const id = uuidv4();
 
-        const newCrypto = await Crypto.create({
+        const newCrypto = await CryptoDetails.create({
             id,
             name,
             symbol,
@@ -47,12 +46,12 @@ exports.calTransfer = async (req, res) => {
     try {
         const { amount, sender, receiver } = req.body;
 
-        const senderCrypto = await Crypto.findOne({
+        const senderCrypto = await CryptoDetails.findOne({
             where: { symbol: sender },
             attributes: ['value']
         });
 
-        const receiverCrypto = await Crypto.findOne({
+        const receiverCrypto = await CryptoDetails.findOne({
             where: { symbol: receiver },
             attributes: ['value']
         });

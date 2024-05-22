@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 
-const Users = sequelize.define('Users', {
+const CryptoDetails = sequelize.define('CryptoDetails', {
     id: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -11,18 +11,18 @@ const Users = sequelize.define('Users', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    balance: {
+    symbol: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
+    },
+    value: {
         type: DataTypes.FLOAT,
         allowNull: false
-    },
-    role: {
-        type: DataTypes.ENUM('Admin', 'User'),
-        allowNull: false
-    },
-
+    }
 }, {
-    tableName: 'users',
+    tableName: 'crypto_details',
     timestamps: false
 });
 
-module.exports = Users;
+module.exports = CryptoDetails;
