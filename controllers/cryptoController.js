@@ -14,14 +14,28 @@ exports.getAllCryptos = async (req, res) => {
 
 exports.createCrypto = async (req, res) => {
     try {
-        const id = uuidv4();
         const { name, symbol, value } = req.body;
+
+        if (!name || !symbol || value === undefined) {
+            return res.status(400).json({ error: 'name, symbol, and value are required' });
+        }
+
+        if (typeof value !== 'number' || value < 0) {
+            return res.status(400).json({ error: 'value must be a non-negative number' });
+        }
+        const existingCrypto = await Crypto.findOne({ $or: [{ name }, { symbol }] });
+        if (existingCrypto) {
+            return res.status(400).json({ error: 'Crypto same name or symbol' });
+        }
+        const id = uuidv4();
+
         const newCrypto = await Crypto.create({
             id,
             name,
             symbol,
             value,
         });
+
         res.status(201).json({ data: newCrypto });
     } catch (error) {
         console.error('Error create Crypto:', error);
@@ -29,12 +43,15 @@ exports.createCrypto = async (req, res) => {
     }
 }
 
-const calExchangeRates = async (amount, sender, receiver) => {
+exports.calTransfer = async (req, res) => {
     try {
+        const { amount, sender, receiver } = req.body;
+
         const senderCrypto = await Crypto.findOne({
             where: { symbol: sender },
             attributes: ['value']
         });
+
         const receiverCrypto = await Crypto.findOne({
             where: { symbol: receiver },
             attributes: ['value']
@@ -42,24 +59,9 @@ const calExchangeRates = async (amount, sender, receiver) => {
 
         if (senderCrypto && receiverCrypto) {
             const senderToReceiverRate = senderCrypto.value / receiverCrypto.value;
-            console.log('senderToReceiverRate', senderToReceiverRate);
-            const amountReceiverNeeded = amount * senderToReceiverRate;
-
-            return amountReceiverNeeded;
-        } else {
-            throw new Error('Value not found for sender or receiver cryptocurrency.');
+            const amountReceive = amount * senderToReceiverRate;
+            return res.status(200).json({ amountReceive });
         }
-    } catch (error) {
-        throw new Error('Error fetching values from the database: ' + error.message);
-    }
-}
-
-exports.calTransfer = async (req, res) => {
-    try {
-        const { amount, sender, receiver } = req.body;
-        const amountReceiverNeeded = await calExchangeRates(amount, sender, receiver);
-        res.json({ amountReceiverNeeded });
-
     } catch (error) {
         console.error('Error create Crypto:', error);
         res.status(500).json({ error: 'Server error' });
