@@ -19,7 +19,6 @@ const Crypto = sequelize.define('Crypto', {
     },
     cryptoId: {
         type: DataTypes.STRING,
-        allowNull: false,
         references: {
             model: CryptoDetails,
             key: 'id'
@@ -27,7 +26,7 @@ const Crypto = sequelize.define('Crypto', {
     },
     amount: {
         type: DataTypes.DECIMAL(20, 8),
-        allowNull: false
+        allowNull: true
     }
 }, {
     tableName: 'crypto',

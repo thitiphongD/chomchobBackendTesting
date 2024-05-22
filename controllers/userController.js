@@ -36,16 +36,14 @@ exports.createUser = async (req, res) => {
 
         if (checkAdmin) {
             role = "User"
-            balance = 0
             const newUser = await User.create({
                 id,
                 name,
-                balance,
                 role
             });
             res.status(201).json({ data: newUser });
         } else {
-            res.status(400).json({ error: 'Not Admin!' });
+            res.status(403).json({ error: 'Not Admin!' });
         }
     } catch (error) {
         console.error('Error create User:', error);
@@ -55,46 +53,76 @@ exports.createUser = async (req, res) => {
 
 exports.increaseUserBalance = async (req, res) => {
     try {
-        const { adminId, userId, amount } = req.body;
-        const checkAdmin = await isAdmin(adminId)
-        if (checkAdmin) {
-            const user = await User.findOne({ where: { id: userId } });
-            if (user) {
-                user.balance += parseFloat(amount);
-                await user.save();
-                res.status(200).json({ message: 'Increase success' });
-            } else {
-                res.status(404).json({ error: 'User not found' });
-            }
+        const { adminId, userId, cryptoId, amount } = req.body;
 
-        } else {
-            res.status(400).json({ error: 'Not Admin!' });
+        const checkAdmin = await isAdmin(adminId);
+        if (!checkAdmin) {
+            return res.status(403).json({ error: 'Not Admin!' });
         }
+
+        const user = await User.findOne({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found!' });
+        }
+
+        let userCrypto = await Crypto.findOne({
+            where: { userId: userId, cryptoId: cryptoId }
+        });
+
+        if (userCrypto) {
+            userCrypto.amount += parseFloat(amount);
+            await userCrypto.save();
+        } else {
+            userCrypto = await Crypto.create({
+                id: uuidv4(),
+                userId: userId,
+                cryptoId: cryptoId,
+                amount: parseFloat(amount)
+            });
+        }
+        res.status(200).json({ message: 'User balance increase success' });
     } catch (error) {
-        console.error('Error increase User Balance:', error);
+        console.error('Error increasing user balance:', error);
         res.status(500).json({ error: 'Server error' });
     }
-}
+};
 
 exports.decreaseUserBalance = async (req, res) => {
     try {
-        const { adminId, userId, amount } = req.body;
-        const checkAdmin = await isAdmin(adminId)
-        if (checkAdmin) {
-            const user = await User.findOne({ where: { id: userId } });
-            if (user) {
-                user.balance -= parseFloat(amount);
-                await user.save();
-                res.status(200).json({ message: 'Decrease success' });
-            } else {
-                res.status(404).json({ error: 'User not found' });
-            }
+        const { adminId, userId, cryptoId, amount } = req.body;
 
-        } else {
-            res.status(400).json({ error: 'Not Admin!' });
+        const checkAdmin = await isAdmin(adminId);
+        if (!checkAdmin) {
+            return res.status(403).json({ error: 'Not Admin!' });
         }
+
+        const user = await User.findOne({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found!' });
+        }
+
+        const cryptoDetail = await CryptoDetails.findOne({ where: { id: cryptoId } });
+        if (!cryptoDetail) {
+            return res.status(404).json({ error: 'Crypto not found!' });
+        }
+
+        let userCrypto = await Crypto.findOne({
+            where: { userId: userId, cryptoId: cryptoId }
+        });
+
+        if (userCrypto) {
+            const newAmount = userCrypto.amount - parseFloat(amount);
+            if (newAmount < 0) {
+                return res.status(400).json({ error: 'Amount less than 0' });
+            }
+            userCrypto.amount = newAmount;
+            await userCrypto.save();
+        } else {
+            return res.status(404).json({ error: 'Crypto entry not found for user!' });
+        }
+        res.status(200).json({ message: 'User balance decrease success' });
     } catch (error) {
-        console.error('Error increase User Balance:', error);
+        console.error('Error increasing user balance:', error);
         res.status(500).json({ error: 'Server error' });
     }
 }
