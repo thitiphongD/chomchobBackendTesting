@@ -11,10 +11,6 @@ const Users = sequelize.define('Users', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    balance: {
-        type: DataTypes.FLOAT,
-        allowNull: false
-    },
     role: {
         type: DataTypes.ENUM('Admin', 'User'),
         allowNull: false

@@ -18,8 +18,6 @@ const isAdmin = async (userId) => {
     }
 };
 
-
-
 exports.getAllUsers = async (req, res) => {
     try {
         const users = await User.findAll();
