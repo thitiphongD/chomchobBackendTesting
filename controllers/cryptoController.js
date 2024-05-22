@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const CryptoDetails = require('../models/CryptoDetails');
+const User = require('../models/Users');
+const Crypto = require('../models/Crypto');
 
 exports.getAllCryptos = async (req, res) => {
     try {
@@ -42,28 +44,56 @@ exports.createCrypto = async (req, res) => {
     }
 }
 
-exports.calTransfer = async (req, res) => {
+exports.transfer = async (req, res) => {
     try {
-        const { amount, sender, receiver } = req.body;
+        const { amount, senderId, receiverId, cryptoSendId, cryptoReceiveId } = req.body;
 
-        const senderCrypto = await CryptoDetails.findOne({
-            where: { symbol: sender },
-            attributes: ['value']
-        });
-
-        const receiverCrypto = await CryptoDetails.findOne({
-            where: { symbol: receiver },
-            attributes: ['value']
-        });
-
-        if (senderCrypto && receiverCrypto) {
-            const senderToReceiverRate = senderCrypto.value / receiverCrypto.value;
-            const amountReceive = amount * senderToReceiverRate;
-            return res.status(200).json({ amountReceive });
+        if (amount <= 0) {
+            return res.status(400).json({ error: 'Invalid transfer amount' });
         }
+
+        const sender = await User.findOne({ where: { id: senderId } });
+        if (!sender) {
+            return res.status(404).json({ error: 'Sender not found' });
+        }
+
+        const receiver = await User.findOne({ where: { id: receiverId } });
+        if (!receiver) {
+            return res.status(404).json({ error: 'Receiver not found' });
+        }
+
+        const senderCrypto = await Crypto.findOne({
+            where: { userId: senderId, cryptoId: cryptoSendId }
+        });
+
+        const receiverCrypto = await Crypto.findOne({
+            where: { userId: receiverId, cryptoId: cryptoReceiveId }
+        });
+
+        if (!senderCrypto || !receiverCrypto || senderCrypto.amount < amount) {
+            return res.status(400).json({ error: 'balance or crypto not found for sender' });
+        }
+
+        const senderCryptoDetails = await CryptoDetails.findOne({ where: { id: cryptoSendId } });
+        const receiverCryptoDetails = await CryptoDetails.findOne({ where: { id: cryptoReceiveId } });
+
+        if (!senderCryptoDetails || !receiverCryptoDetails) {
+            return res.status(404).json({ error: 'Crypto details not found' });
+        }
+
+        const senderToReceiverRate = senderCryptoDetails.value / receiverCryptoDetails.value;
+        const amountReceive = amount * senderToReceiverRate;
+
+        senderCrypto.amount -= parseFloat(amount);
+        receiverCrypto.amount += parseFloat(amountReceive);
+
+        await senderCrypto.save();
+        await receiverCrypto.save();
+
+        res.status(200).json({ message: 'Transfer successful', amountReceive });
     } catch (error) {
-        console.error('Error create Crypto:', error);
+        console.error('Error during transfer:', error);
         res.status(500).json({ error: 'Server error' });
     }
-}
+};
 

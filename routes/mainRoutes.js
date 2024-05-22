@@ -18,6 +18,6 @@ router.post('/decrease', userController.decreaseUserBalance)
 // Crypto
 router.get('/cryptos', cryptoController.getAllCryptos)
 router.post('/createCryptos', cryptoController.createCrypto)
-router.post('/transfer', cryptoController.calTransfer)
+router.post('/transfer', cryptoController.transfer)
 
 module.exports = router
