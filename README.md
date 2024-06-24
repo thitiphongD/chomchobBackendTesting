@@ -42,5 +42,3 @@ docker-compose up -d
 ## Postman Collections
 
 https://www.postman.com/lunar-module-astronomer-78429571/workspace/chomchob/request/32128179-a18e67e9-e82f-4a57-a516-a16c66d4fd8e
-
-# Sequelize Database Design
